@@ -77,13 +77,6 @@ void setup()
   // init NeoPixel
   strip.begin();
   strip.show();
-  // connect to broker
-  while (! mqtt.connect(MQTT_CLIENT_ID))
-    delay(1000);
-  // publish/subscribe topics
-  mqtt.publish("test/duino/msg","startup");
-  mqtt.subscribe("test/millis");
-  mqtt.subscribe("test/color");    
   // init timer job (after instead of every for regulary call delay)
   t.every(PIXEL_UPDATE_INTERVAL, jobPIX);
   t.every(MQTT_UPDATE_INTERVAL,  jobMQTT);
@@ -115,7 +108,14 @@ void jobPIX(void)
 void jobMQTT(void)
 {
   // do mqtt job, handle reconnect if need
-  if(!mqtt.loop()) mqtt.connect(MQTT_CLIENT_ID);
+  if(!mqtt.loop()) {
+    if (mqtt.connect(MQTT_CLIENT_ID)) {
+      // publish/subscribe topics
+      mqtt.publish("test/duino/msg","startup");
+      mqtt.subscribe("test/millis");
+      mqtt.subscribe("test/color");
+    }
+  }
 }
 
 /*
